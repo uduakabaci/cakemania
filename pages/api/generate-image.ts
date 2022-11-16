@@ -17,14 +17,7 @@ export default async function handler(
   try {
     if (req.method != "POST")
       return { message: "Method not allowed", status: false };
-    const inputDir = path.resolve(
-      __dirname,
-      "../../../../assets/images/input/"
-    );
-    const outputDir = path.resolve(
-      __dirname,
-      "../../../../assets/images/output/"
-    );
+    const inputDir = path.resolve(process.cwd(), "assets/images/input/");
 
     const data: { fields: any; files: any } = await new Promise(
       (resolve, reject) => {
