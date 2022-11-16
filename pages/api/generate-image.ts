@@ -2,75 +2,95 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 import sharp from "sharp";
+import formidable from "formidable";
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const inputDir = path.resolve(__dirname, "../../../../assets/images/input/");
-  const outputDir = path.resolve(
-    __dirname,
-    "../../../../assets/images/output/"
-  );
+  try {
+    if (req.method != "POST")
+      return { message: "Method not allowed", status: false };
+    const inputDir = path.resolve(
+      __dirname,
+      "../../../../assets/images/input/"
+    );
+    const outputDir = path.resolve(
+      __dirname,
+      "../../../../assets/images/output/"
+    );
 
-  const maxCropHeight = 700;
-  const maxCropWidth = 700;
+    const data: { fields: any; files: any } = await new Promise(
+      (resolve, reject) => {
+        const form = new formidable.IncomingForm();
 
-  const metadata = await sharp(`${inputDir}/udee.jpeg`).metadata();
-  const { height = maxCropHeight, width = maxCropWidth } = metadata;
-  const cropHeight = height > maxCropHeight ? maxCropHeight : height;
-  const cropWidth = width > maxCropWidth ? maxCropWidth : width;
+        form.parse(req, (err: any, fields: any, files: any) => {
+          if (err) reject({ err });
+          resolve({ fields, files });
+        });
+      }
+    );
 
-  const rect = Buffer.from(
-    '<svg><rect x="0" y="0" width="700" height="700" rx="550" ry="550" fill="#FF0000"/></svg>'
-  );
+    let { name, settings } = data.fields;
+    const { image } = data.files;
 
-  const text = "Uduakabaci Udofe";
+    const textBuffer1 = Buffer.from(`
+       <svg height="80" fill="blue" width="1000">
+        <style>
+        .title { fill: #feeadd; font-size: 60px;}
+        </style>
+        <text x="0" y="90%" text-anchor="left" class="title">${name}</text>
+      </svg>
+      `);
 
-  const textBuffer = Buffer.from(`
-     <svg width="541" height="58">
-      <style>
-      .title { fill: #fff; font-size: 60px; font-weight: bold;}
-      </style>
-      <text x="50%" y="70%" text-anchor="middle" class="title">${text}</text>
-    </svg>
-    `);
+    const textBuffer2 = Buffer.from(`
+       <svg height="80" fill="blue"  width="1000">
+        <style>
+        .title { fill: #ff0402; font-size: 45px;}
+        </style>
+        <text x="0" y="90%" text-anchor="left" class="title">CONFIRMED</text>
+      </svg>
+      `);
 
-  const userCrop = await sharp(`${inputDir}/udee.jpeg`)
-    .extract({ height: cropHeight, width: cropWidth, left: 0, top: 0 })
-    .composite([
-      {
-        input: rect,
-        top: 0,
-        left: 0,
-        blend: "dest-in",
-      },
-    ])
-    .toFormat("png")
-    .toBuffer();
+    let imageF = await sharp(image.filepath)
+      .resize(1184, 2120, { fit: "cover" })
+      .toFormat("png")
+      .toBuffer();
 
-  await sharp(`${inputDir}/TEWZ-template.jpg`)
-    .composite([
-      {
-        input: userCrop,
-        top: 790,
-        left: 829,
-      },
-      {
-        input: Buffer.from(
-          '<svg><rect x="0" y="0" width="541" height="58" fill="#000000"/></svg>'
-        ),
-        top: 1889,
-        left: 642,
-      },
-      {
-        input: textBuffer,
-        top: 1889,
-        left: 642,
-        blend: "over",
-      },
-    ])
-    .toFile(`${outputDir}/504.png`);
+    const imageBuf = await sharp(`${inputDir}/template.png`)
+      .composite([
+        {
+          input: imageF,
+          top: 504,
+          left: 186,
+        },
+        {
+          input: textBuffer1,
+          top: 1873,
+          left: 1528,
+          blend: "over",
+        },
+        {
+          input: textBuffer2,
+          top: 1940,
+          left: 1558,
+          blend: "over",
+        },
+      ])
+      .toBuffer();
 
-  res.status(200).json({ metadata: 5 });
+    // .toFile(`${outputDir}/image.png`);
+
+    res.setHeader("Content-Type", "image/jpg");
+    res.send(imageBuf);
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({ message: "error" });
+  }
 }
