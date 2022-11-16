@@ -30,7 +30,7 @@ export default async function handler(
       }
     );
 
-    let { name, settings } = data.fields;
+    let { name } = data.fields;
     const { image } = data.files;
 
     const textBuffer1 = Buffer.from(`
@@ -56,7 +56,7 @@ export default async function handler(
       .toFormat("png")
       .toBuffer();
 
-    const imageBuf = await sharp(`${inputDir}/template.png`)
+    const imageBuf = await sharp(`${inputDir}/template.webp`)
       .composite([
         {
           input: imageF,
@@ -76,10 +76,10 @@ export default async function handler(
           blend: "over",
         },
       ])
-      .toFormat("png", { quality: 80 })
+      .toFormat("jpeg")
       .toBuffer();
 
-    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Content-Type", "image/jpeg");
     res.send(imageBuf);
   } catch (err) {
     console.log(err);
