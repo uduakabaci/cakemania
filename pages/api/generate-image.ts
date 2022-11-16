@@ -83,11 +83,10 @@ export default async function handler(
           blend: "over",
         },
       ])
+      .toFormat("png", { quality: 80 })
       .toBuffer();
 
-    // .toFile(`${outputDir}/image.png`);
-
-    res.setHeader("Content-Type", "image/jpg");
+    res.setHeader("Content-Type", "image/png");
     res.send(imageBuf);
   } catch (err) {
     console.log(err);
