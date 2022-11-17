@@ -85,7 +85,7 @@ export default function ImagePreview() {
     });
 
     const formdata = new FormData();
-    formdata.append("name", name.toLocaleUpperCase());
+    formdata.append("name", name);
     formdata.append("image", blob);
     formdata.append("settings", JSON.stringify(settings));
 

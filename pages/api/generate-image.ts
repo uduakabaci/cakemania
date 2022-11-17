@@ -36,23 +36,17 @@ export default async function handler(
     const textBuffer1 = Buffer.from(`
        <svg height="80" fill="blue" width="1000">
         <style>
-        .title { fill: #feeadd; font-size: 60px;}
+        .title { fill: #d8b98c; font-size: 90px; font-weight: bold; font-family: cursive; transform: skewX(-8deg);}
         </style>
-        <text x="0" y="90%" text-anchor="left" class="title">${name}</text>
+        <text x="10" y="90%" text-anchor="left" class="title">${name}</text>
       </svg>
       `);
-
-    const textBuffer2 = Buffer.from(`
-       <svg height="80" fill="blue"  width="1000">
-        <style>
-        .title { fill: #ff0402; font-size: 45px;}
-        </style>
-        <text x="0" y="90%" text-anchor="left" class="title">CONFIRMED</text>
-      </svg>
-      `);
-
     let imageF = await sharp(image.filepath)
       .resize(1184, 2120, { fit: "cover" })
+      .toFormat("png")
+      .toBuffer();
+
+    const confirmedImage = await sharp(`${inputDir}/confirmed.png`)
       .toFormat("png")
       .toBuffer();
 
@@ -60,19 +54,18 @@ export default async function handler(
       .composite([
         {
           input: imageF,
-          top: 504,
-          left: 186,
+          top: 528,
+          left: 210,
+        },
+        {
+          input: confirmedImage,
+          top: 454,
+          left: -312,
         },
         {
           input: textBuffer1,
-          top: 1873,
-          left: 1528,
-          blend: "over",
-        },
-        {
-          input: textBuffer2,
-          top: 1940,
-          left: 1558,
+          top: 1800,
+          left: 1828,
           blend: "over",
         },
       ])
