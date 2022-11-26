@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Cropper from "cropperjs";
 
+const sessionKey = "ticket";
+
 export default function ImagePreview() {
   const [image, setImage] = useState<{ base64: string; raw: any }>();
   const [settings, setSettings] = useState<{
@@ -15,6 +17,8 @@ export default function ImagePreview() {
   const [name, setName] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [ticket, setTicket] = useState(null);
+  const [ticketID, setTicketID] = useState("");
 
   function onSelectFile(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files.length > 0) {
@@ -28,6 +32,11 @@ export default function ImagePreview() {
       reader.readAsDataURL(e.target.files[0]);
     }
   }
+
+  useEffect(() => {
+    const sessionData = sessionStorage.getItem(sessionKey);
+    setTicket(JSON.parse(sessionData || "null"));
+  }, []);
 
   useEffect(() => {
     let cropper: any = null;
@@ -88,6 +97,7 @@ export default function ImagePreview() {
     formdata.append("name", name);
     formdata.append("image", blob);
     formdata.append("settings", JSON.stringify(settings));
+    formdata.append("ticket", JSON.stringify(ticket) || "");
 
     setLoading(true);
 
@@ -96,74 +106,131 @@ export default function ImagePreview() {
       body: formdata,
     })
       .then((data) => {
+        if (data.status != 200) throw Error(data.statusText);
         return data?.blob();
       })
       .then((blob) => {
         download(blob, image?.raw.name);
       })
-      .catch((err) => {
-        console.log(err);
+      .catch(() => {
+        alert("Could not generate your image at the moment. Try again later.");
       })
       .finally(() => setLoading(false));
   };
 
+  // 464333901;
+
+  const fetchPaymentDetails = async () => {
+    // fetch
+    if (!ticketID) return;
+    setLoading(true);
+    fetch(`https://api.cakemaniashow.com/ticket_id/${ticketID}`)
+      .then((response) => response.json())
+      .then((body) => {
+        if (!/success/gi.test(body.status)) {
+          alert("This ticket ID is invalid!");
+        } else {
+          sessionStorage.setItem(sessionKey, JSON.stringify(body));
+          setTicket(body);
+        }
+      })
+      .catch((err) => console.log(err.message))
+      .finally(() => setLoading(false));
+  };
+
   return (
-    <div className="w-full max-w-[600px] mx-auto p-4 my-4 space-y-4">
-      <input
-        type="file"
-        id="file"
-        className="hidden"
-        onChange={onSelectFile}
-        itemType="*/image"
-      />
-      {!image && (
-        <label
-          className="border-2 border-dashed border-gray-400 h-[200px] w-full  rounded-lg mx-auto flex items-center justify-center padding text-center cursor-pointer"
-          htmlFor="file"
-        >
-          Click here to upload image
-        </label>
-      )}
-      {image && (
-        <div className="mx-auto">
-          <label
-            htmlFor="file"
-            className="bg-blue-500 py-2 px-4 rounded-lg text-center text-white cursor-pointer inline-block mb-2"
-          >
-            Change image
-          </label>
-          <div className="relative">
-            <img src={image?.base64} id="image" className="block w-full" />
-            <p className="pt-1 text-gray-500 text-sm">
-              Move outline to crop the image to fit.
+    <>
+      {!ticket && (
+        <div className="fixed h-full w-full bg-white top-0 grid items-center">
+          <div className="w-full max-w-[600px] mx-auto p-4">
+            <div>
+              <p className="mb-2 uppercase text-sm text-gray-600">
+                Input ticket ID
+              </p>
+              <input
+                type="text"
+                className="py-3 px-4 border border-gray-300 rounded-lg w-full outline-none"
+                defaultValue={ticketID}
+                onChange={(e) => setTicketID(e.target.value)}
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-2 text-justify">
+              This service is for those who bought ticket for the event. Please
+              Provide a valid ticket ID to continue.
             </p>
+            <div className="mt-2">
+              {loading ? (
+                <p>Processing...</p>
+              ) : (
+                <button
+                  className="bg-blue-500 active:bg-blue-700  py-3 px-4 rounded-lg text-center text-white cursor-pointer inline-block w-full uppercase text-sm"
+                  onClick={fetchPaymentDetails}
+                >
+                  Confirm Payment
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
-      <div>
-        <p className="mb-2">Enter name</p>
+      <div className="w-full max-w-[600px] mx-auto p-4 my-4 space-y-4">
+        <h1 className="uppercase font-semibold">Image Generator</h1>
         <input
-          type="text"
-          className="py-3 px-4 border border-gray-300 rounded-lg w-full outline-none"
-          defaultValue={name}
-          onChange={(e) => setName(e.target.value)}
+          type="file"
+          id="file"
+          className="hidden"
+          onChange={onSelectFile}
+          itemType="*/image"
         />
-      </div>
-      <div>
-        {loading ? (
-          <p>Processing Image...</p>
-        ) : (
-          name &&
-          image?.raw && (
-            <button
-              className="bg-blue-500 active:bg-blue-700  py-3 px-4 rounded-lg text-center text-white cursor-pointer"
-              onClick={handleSubmit}
-            >
-              Generate
-            </button>
-          )
+        {!image && (
+          <label
+            className="border-2 border-dashed border-gray-400 h-[200px] w-full  rounded-lg mx-auto flex items-center justify-center padding text-center cursor-pointer uppercase text-sm text-gray-700"
+            htmlFor="file"
+          >
+            Click here to upload image
+          </label>
         )}
+        {image && (
+          <div className="mx-auto">
+            <label
+              htmlFor="file"
+              className="bg-orange-500 py-2 px-4 rounded-lg text-center text-white cursor-pointer inline-block mb-2 uppercase text-sm"
+            >
+              Change image
+            </label>
+            <div className="relative">
+              <img src={image?.base64} id="image" className="block w-full" />
+              <p className="pt-1 text-gray-500 text-sm">
+                Move the outline to crop the image to fit.
+              </p>
+            </div>
+          </div>
+        )}
+        <div>
+          <p className="mb-2 text-sm uppercase text-gray-600">Input name</p>
+          <input
+            type="text"
+            className="py-3 px-4 border border-gray-300 rounded-lg w-full outline-none"
+            defaultValue={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div>
+          {loading ? (
+            <p>Processing Image...</p>
+          ) : (
+            name &&
+            image?.raw && (
+              <button
+                className="bg-blue-500 active:bg-blue-700  py-3 px-4 rounded-lg text-center text-white cursor-pointer w-full text-sm uppercase"
+                onClick={handleSubmit}
+              >
+                Generate
+              </button>
+            )
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

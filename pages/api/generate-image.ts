@@ -30,8 +30,12 @@ export default async function handler(
       }
     );
 
-    let { name } = data.fields;
+    let { name, ticket } = data.fields;
     const { image } = data.files;
+
+    ticket = JSON.parse(ticket || "null");
+
+    if (!/success/gi.test(ticket?.status)) throw new Error("Invalid ticket");
 
     const textBuffer1 = Buffer.from(`
        <svg height="80" fill="blue" width="1000">
