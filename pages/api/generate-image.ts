@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 import sharp from "sharp";
 import formidable from "formidable";
+import { readFileSync } from "fs";
 
 export const config = {
   api: {
@@ -34,13 +35,23 @@ export default async function handler(
     const { image } = data.files;
 
     ticket = JSON.parse(ticket || "null");
+    const font = readFileSync(`${inputDir}/stone.ttf`, "base64");
 
     if (!/success/gi.test(ticket?.status)) throw new Error("Invalid ticket");
 
     const textBuffer1 = Buffer.from(`
        <svg height="80" fill="blue" width="1000">
         <style>
-        .title { fill: #d8b98c; font-size: 90px; font-weight: bold; font-family: cursive; transform: skewX(-8deg);}
+        @font-face {
+            font-family: stony;
+            src: url(data:application/font-ttf;base64,${font}) format(ttf);
+        }
+        .title {
+          fill: #d8b98c;
+          font-size: 90px;
+          font-weight: bold;
+          font-family: stony;
+        }
         </style>
         <text x="10" y="90%" text-anchor="left" class="title">${name}</text>
       </svg>
@@ -51,10 +62,11 @@ export default async function handler(
       .toBuffer();
 
     const confirmedImage = await sharp(`${inputDir}/confirmed.png`)
+      .resize(1700)
       .toFormat("png")
       .toBuffer();
 
-    const imageBuf = await sharp(`${inputDir}/template.webp`)
+    const imageBuf = await sharp(`${inputDir}/template-0.webp`)
       .composite([
         {
           input: imageF,
@@ -63,12 +75,12 @@ export default async function handler(
         },
         {
           input: confirmedImage,
-          top: 454,
-          left: -312,
+          top: 1384,
+          left: 442,
         },
         {
           input: textBuffer1,
-          top: 1800,
+          top: 1840,
           left: 1828,
           blend: "over",
         },

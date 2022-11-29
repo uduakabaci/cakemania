@@ -141,7 +141,7 @@ export default function ImagePreview() {
   return (
     <>
       {!ticket && (
-        <div className="fixed h-full w-full bg-white top-0 grid items-center">
+        <div className="fixed h-full w-full bg-white top-0 grid items-center z-20">
           <div className="w-full max-w-[600px] mx-auto p-4">
             <div>
               <p className="mb-2 uppercase text-sm text-gray-600">
@@ -163,7 +163,7 @@ export default function ImagePreview() {
                 <p>Processing...</p>
               ) : (
                 <button
-                  className="bg-blue-500 active:bg-blue-700  py-3 px-4 rounded-lg text-center text-white cursor-pointer inline-block w-full uppercase text-sm"
+                  className="bg-[#fff44f]  py-3 px-4 rounded-lg text-center cursor-pointer inline-block w-full uppercase text-sm"
                   onClick={fetchPaymentDetails}
                 >
                   Confirm Payment
@@ -173,8 +173,13 @@ export default function ImagePreview() {
           </div>
         </div>
       )}
-      <div className="w-full max-w-[600px] mx-auto p-4 my-4 space-y-4">
+      <div className="w-full max-w-[600px] mx-auto p-4 my-4 space-y-4 relative">
         <h1 className="uppercase font-semibold">Image Generator</h1>
+        <img
+          src="/images/logo.png"
+          alt="logo"
+          className="w-[50px] absolute right-4 top-[-20px] z-50"
+        />
         <input
           type="file"
           id="file"
@@ -222,7 +227,7 @@ export default function ImagePreview() {
             name &&
             image?.raw && (
               <button
-                className="bg-blue-500 active:bg-blue-700  py-3 px-4 rounded-lg text-center text-white cursor-pointer w-full text-sm uppercase"
+                className="bg-[#fff44f]  py-3 px-4 rounded-lg text-center cursor-pointer w-full text-sm uppercase"
                 onClick={handleSubmit}
               >
                 Generate
