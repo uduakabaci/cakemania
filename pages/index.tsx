@@ -163,7 +163,7 @@ export default function ImagePreview() {
                 <p>Processing...</p>
               ) : (
                 <button
-                  className="bg-[#fff44f]  py-3 px-4 rounded-lg text-center cursor-pointer inline-block w-full uppercase text-sm"
+                  className="bg-[#2a07f9]  py-3 px-4 rounded-lg text-center cursor-pointer inline-block w-full uppercase text-sm text-white"
                   onClick={fetchPaymentDetails}
                 >
                   Confirm Payment
@@ -212,7 +212,10 @@ export default function ImagePreview() {
           </div>
         )}
         <div>
-          <p className="mb-2 text-sm uppercase text-gray-600">Input name</p>
+          <p className="mb-2 text-sm text-gray-600">
+            <span className="uppercase">Name</span>
+            <span> (As you want on the confirm)</span>
+          </p>
           <input
             type="text"
             className="py-3 px-4 border border-gray-300 rounded-lg w-full outline-none"
@@ -227,7 +230,7 @@ export default function ImagePreview() {
             name &&
             image?.raw && (
               <button
-                className="bg-[#fff44f]  py-3 px-4 rounded-lg text-center cursor-pointer w-full text-sm uppercase"
+                className="bg-[#2a07f9]  py-3 px-4 rounded-lg text-center cursor-pointer w-full text-sm uppercase text-white"
                 onClick={handleSubmit}
               >
                 Generate

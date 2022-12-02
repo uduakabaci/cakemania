@@ -48,7 +48,7 @@ export default async function handler(
         }
         .title {
           fill: #d8b98c;
-          font-size: 90px;
+          font-size: 100px;
           font-weight: bold;
           font-family: stony;
         }
