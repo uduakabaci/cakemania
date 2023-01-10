@@ -39,6 +39,10 @@ export default function ImagePreview() {
   }, []);
 
   useEffect(() => {
+    if (ticket) setName((ticket as any).ticket_name || "John Doe");
+  }, [ticket]);
+
+  useEffect(() => {
     let cropper: any = null;
     if (image) {
       cropper = new Cropper(
@@ -94,7 +98,7 @@ export default function ImagePreview() {
     });
 
     const formdata = new FormData();
-    formdata.append("name", name);
+    formdata.append("name", (ticket as any).ticket_name || "Jon smith");
     formdata.append("image", blob);
     formdata.append("settings", JSON.stringify(settings));
     formdata.append("ticket", JSON.stringify(ticket) || "");
@@ -214,12 +218,13 @@ export default function ImagePreview() {
         <div>
           <p className="mb-2 text-sm text-gray-600">
             <span className="uppercase">Name</span>
-            <span> (As you want on the confirm)</span>
+            <span> (As on your ticket)</span>
           </p>
           <input
             type="text"
             className="py-3 px-4 border border-gray-300 rounded-lg w-full outline-none"
             defaultValue={name}
+            disabled
             onChange={(e) => setName(e.target.value)}
           />
         </div>
